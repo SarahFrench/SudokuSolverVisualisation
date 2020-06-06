@@ -1,0 +1,8 @@
+.sudoku-board {
+    display: grid;
+    width: 300px;
+    height: 300px;
+
+    grid-template-columns: repeat(auto-fill, 10%);
+    grid-template-rows: repeat(auto-fill, 10%);
+}
