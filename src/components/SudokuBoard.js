@@ -23,7 +23,8 @@ class SudokuBoard extends React.Component {
             attempts: {},
             unsolved: [],
             isSolving: false,
-            solver: undefined
+            solver: undefined,
+            solved: false
         }
     }
 
@@ -172,6 +173,7 @@ class SudokuBoard extends React.Component {
         if(this.state.i === this.state.unsolved.length){
             console.log("Sudoku solved!");
             this.stopSolving();
+            this.setState({solved: true});
             return;
         }
 
@@ -209,11 +211,25 @@ class SudokuBoard extends React.Component {
         })
     }
 
+    showSolvedMessage = () => {
+        return this.state.solved ? "visible" : "hidden";
+    }
+
+    getCellClass(index) {
+        if(index >= 27 && index < 36){
+            return "cell-border-top";
+        } else if (index >= 54 && index < 63){
+            return "cell-border-top";
+        } else {
+            return "";
+        }
+    }
+
     renderNumbers(){
         let cells = this.state.board.flat();
         return cells.map( (cell, index) => {
             return (
-                <div className="cell" key={`cell-${index}`}>
+                <div className={`cell ${this.getCellClass(index)}`} key={`cell-${index}`}>
                     {cell}
                 </div>
             );
@@ -222,12 +238,16 @@ class SudokuBoard extends React.Component {
 
     render(){
         return (
-            <div>
-                <div className="sudoku-board">
+            <div className="sudoku-board-container">
+                <div className={"sudoku-board " + (this.state.solved ? "completed" : "")}>
                     {this.renderNumbers()}
                 </div>
-                <input type="button" disabled={this.state.isSolving} onClick={this.startSolving} value="Solve"/>
-                <input type="button" disabled={!this.state.isSolving} onClick={this.stopSolving} value="Stop"/>
+                <p>Use the buttons below to start/stop the brute force Sudoku solving process</p>
+                <div>
+                    <input type="button" className="ui button" disabled={this.state.isSolving} onClick={this.startSolving} value="Solve" />
+                    <input type="button" className="ui button" disabled={!this.state.isSolving} onClick={this.stopSolving} value="Pause" />
+                </div>
+                <p className={this.showSolvedMessage()}>Solved!</p>
             </div>
         );
     }

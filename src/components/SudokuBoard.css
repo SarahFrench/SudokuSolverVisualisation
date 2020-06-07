@@ -1,11 +1,25 @@
+.sudoku-board-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .sudoku-board {
     display: grid;
     width: 300px;
     height: 300px;
-
+    box-sizing: border-box;
     grid-template-columns: repeat(auto-fill, 11.11%);
     grid-template-rows: repeat(auto-fill, 11.11%);
 
+    border: solid black 1px;
+
+    margin-bottom: 2em;
+}
+
+.completed {
+    border: solid 3px green;
 }
 
 .cell {
@@ -13,4 +27,24 @@
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.cell:nth-child(3n-2){
+    border-left: solid black 1px;
+}
+
+.cell:nth-child(9n){
+    border-right: solid black 1px;
+}
+
+.cell-border-top {
+    border-top: solid black 1px;
+}
+
+.visible {
+    visibility: visible;
+}
+
+.hidden {
+    visibility: hidden;
 }
