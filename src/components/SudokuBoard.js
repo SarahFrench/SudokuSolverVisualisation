@@ -8,9 +8,11 @@ class SudokuBoard extends React.Component {
         super(props);
 
         this.state ={
+            i: 0,
             board: [
                 [8, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 3, 6, 0, 0, 0, 0, 0],
+                // [0, 0, 3, 6, 0, 0, 0, 0, 0],
+                [9, 4, 3, 6, 8, 2, 1, 7, 5],
                 [0, 7, 0, 0, 9, 0, 2, 0, 0],
                 [0, 5, 0, 0, 0, 7, 0, 0, 0],
                 [0, 0, 0, 0, 4, 5, 7, 0, 0],
@@ -20,7 +22,9 @@ class SudokuBoard extends React.Component {
                 [0, 9, 0, 0, 0, 0, 4, 0, 0]
             ],
             attempts: {},
-            unsolved: []
+            unsolved: [],
+            isSolving: false,
+            solver: undefined
         }
     }
 
@@ -36,10 +40,7 @@ class SudokuBoard extends React.Component {
             unsolved : unsolved,
             attempts : attempts
         })
-    }
 
-    componentDidUpdate(){
-        console.log("updated");
     }
 
     findUnsolvedSpaces = () => {
@@ -54,22 +55,16 @@ class SudokuBoard extends React.Component {
         return unsolved;
     }
 
-    // updateSolvedStatus = () => {
-    //     let boardNumbers = this.state.board.flat();
-    //     let numberSet = new Set(boardNumbers);
-    //     this.solved = !(numberSet.has(0)); //cannot be solved if a square has 0
-    // }
-
     getNumberAtPosition = (coords) => {
         // x = column, y = row
         return this.state.board[coords.row][coords.column];
     }
 
-    setNumberAtPosition = (coords, value) => {
+    updatedBoard = (coords, value, board = this.state.board) => {
         // x = column, y = row
-        let board = this.state.board;
-        board[coords.row][coords.column] = value;
-        this.setState({ board: board })
+        let newBoard = board;
+        newBoard[coords.row][coords.column] = value;
+        return newBoard;
     }
 
     identifySubSquare = (coords) => {
@@ -140,46 +135,79 @@ class SudokuBoard extends React.Component {
         return possibleNumbers;
     }
 
-    solveSelf = () => {
-        let i = 0;
-        for (i = 0; i < this.state.unsolved.length; i++) {
-            // console.log(i)
-            let possibleNumbers = this.possibleNumbersForPosition(this.state.unsolved[i]); //Set
-            let previouslyTried = this.state.attempts[`${this.state.unsolved[i].row}-${this.state.unsolved[i].column}`]; //Array
+    nextStepIfHaveNumberChoices = (possibleNumbers) => {
+        let choice = possibleNumbers[0];
 
-            previouslyTried.forEach(number => {
-                possibleNumbers.delete(number);
-            })
+        let newAttempts = this.state.attempts;
+        newAttempts[`${this.state.unsolved[this.state.i].row}-${this.state.unsolved[this.state.i].column}`].push(choice);
+        let newBoard = this.state.board;
+        let position = this.state.unsolved[this.state.i]
+        newBoard[position.row][position.column] = choice;
+        this.setState({
+            attempts: newAttempts,
+            i: this.state.i + 1,
+            board: newBoard
+        });
+    }
 
-            possibleNumbers = [...possibleNumbers]; //convert Set to array
+    nextStepIfNoNumbersLeft = () => {
+        let newBoard = this.updatedBoard(this.state.unsolved[this.state.i], 0)
 
-            if (possibleNumbers.length > 0) {
-                let choice = possibleNumbers[0];
-
-                let newAttempts = this.state.attempts;
-                newAttempts[`${this.state.unsolved[i].row}-${this.state.unsolved[i].column}`].push(choice);
-                this.setState({ attempts : newAttempts});
-                this.setNumberAtPosition(this.state.unsolved[i], choice);
-                if (i === this.state.unsolved.length - 1 && (this.findUnsolvedSpaces().length === 0)) {
-                    console.log("\n\tSudoku solved!");
-                    // this.solved = true;
-                }
-            } else {
-                this.setNumberAtPosition(this.state.unsolved[i], 0);
-                let newAttempts = this.state.attempts;
-                newAttempts[`${this.state.unsolved[i].row}-${this.state.unsolved[i].column}`] = [];
-                this.setState({attempts: newAttempts});
-                i--;
-                this.setNumberAtPosition(this.state.unsolved[i], 0);
-                i--;
-                if (i >= 0) {
-
-                } else {
-                    throw new Error("Unable to solve Sudoku - make sure the board is valid")
-                }
-
-            }
+        let newAttempts = this.state.attempts;
+        newAttempts[`${this.state.unsolved[this.state.i].row}-${this.state.unsolved[this.state.i].column}`] = [];
+        // i--;
+        newBoard = this.updatedBoard(this.state.unsolved[this.state.i -1 ], 0, newBoard);
+        // i--;
+        if ( (this.state.i - 2) < 0) {
+            throw new Error("Unable to solve Sudoku - make sure the board is valid")
         }
+
+        this.setState({
+            board: newBoard,
+            attempts: newAttempts,
+            i: this.state.i - 1
+        });
+    }
+
+    solveNextStep = () => {
+        if(this.state.i === this.state.unsolved.length){
+            console.log("Sudoku solved!");
+            this.stopSolving();
+            return;
+        }
+
+        let possibleNumbers = this.possibleNumbersForPosition(this.state.unsolved[this.state.i]); //Set
+        let previouslyTried = this.state.attempts[`${this.state.unsolved[this.state.i].row}-${this.state.unsolved[this.state.i].column}`]; //Array
+
+        previouslyTried.forEach(number => {
+            possibleNumbers.delete(number);
+        })
+
+        possibleNumbers = [...possibleNumbers]; //convert Set to array
+
+        if (possibleNumbers.length > 0) {
+            this.nextStepIfHaveNumberChoices(possibleNumbers);
+        } else {
+            this.nextStepIfNoNumbersLeft();
+        }
+
+    }
+
+    startSolving = () => {
+        if(!this.state.isSolving){
+            this.setState({
+                isSolving: true,
+                solver: setInterval(this.solveNextStep, 1)
+            })
+        }
+    }
+
+    stopSolving = () => {
+        clearInterval(this.state.solver);
+        this.setState({
+            isSolving: false,
+            solver: undefined
+        })
     }
 
     renderNumbers(){
@@ -199,7 +227,8 @@ class SudokuBoard extends React.Component {
                 <div className="sudoku-board">
                     {this.renderNumbers()}
                 </div>
-                <input type="button" onClick={this.solveSelf} value="Solve"/>
+                <input type="button" disabled={this.state.isSolving} onClick={this.startSolving} value="Solve"/>
+                <input type="button" disabled={!this.state.isSolving} onClick={this.stopSolving} value="Stop"/>
             </div>
         );
     }
