@@ -7,3 +7,10 @@
     grid-template-rows: repeat(auto-fill, 11.11%);
 
 }
+
+.cell {
+    border: solid 1px lightgrey;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

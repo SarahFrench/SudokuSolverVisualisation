@@ -10,16 +10,15 @@ class SudokuBoard extends React.Component {
         this.state ={
             i: 0,
             board: [
-                [8, 0, 0, 0, 0, 0, 0, 0, 0],
-                // [0, 0, 3, 6, 0, 0, 0, 0, 0],
-                [9, 4, 3, 6, 8, 2, 1, 7, 5],
-                [0, 7, 0, 0, 9, 0, 2, 0, 0],
-                [0, 5, 0, 0, 0, 7, 0, 0, 0],
-                [0, 0, 0, 0, 4, 5, 7, 0, 0],
-                [0, 0, 0, 1, 0, 0, 0, 3, 0],
-                [0, 0, 1, 0, 0, 0, 0, 6, 8],
-                [0, 0, 8, 5, 0, 0, 0, 1, 0],
-                [0, 9, 0, 0, 0, 0, 4, 0, 0]
+                [8, undefined, undefined, 7, undefined, 3, undefined, undefined, undefined],
+                [undefined, undefined, 3, 6, undefined, undefined, undefined, undefined, undefined],
+                [undefined, 7, undefined, undefined, 9, undefined, 2, undefined, undefined],
+                [undefined, 5, undefined, undefined, undefined, 7, undefined, undefined, undefined],
+                [undefined, undefined, undefined, undefined, 4, 5, 7, undefined, undefined],
+                [undefined, undefined, undefined, 1, undefined, undefined, undefined, 3, undefined],
+                [5, undefined, 1, undefined, undefined, undefined, undefined, 6, 8],
+                [undefined, undefined, 8, 5, undefined, undefined, undefined, 1, undefined],
+                [undefined, 9, undefined, undefined, undefined, undefined, 4, 5, undefined]
             ],
             attempts: {},
             unsolved: [],
@@ -47,7 +46,7 @@ class SudokuBoard extends React.Component {
         let unsolved = [];
         this.state.board.forEach((row, y) => {
             row.forEach((space, x) => {
-                if (space === 0) {
+                if (space === undefined) {
                     unsolved.push({ row: y, column: x });
                 }
             });
@@ -80,7 +79,7 @@ class SudokuBoard extends React.Component {
     numbersInRow = (coords) => {
         let row = coords.row;
         let setNumbers = new Set(this.state.board[row]);
-        setNumbers.delete(0);
+        setNumbers.delete(undefined);
         return [...setNumbers];
     }
 
@@ -90,7 +89,7 @@ class SudokuBoard extends React.Component {
             return row[column];
         });
         let setNumbers = new Set(numbers);
-        setNumbers.delete(0);
+        setNumbers.delete(undefined);
         return [...setNumbers];
     }
 
@@ -110,7 +109,7 @@ class SudokuBoard extends React.Component {
         numbersInSubSquare = numbersInSubSquare.flat();
 
         let setNumbers = new Set(numbersInSubSquare);
-        setNumbers.delete(0);
+        setNumbers.delete(undefined);
         return [...setNumbers];
     }
 
@@ -151,12 +150,12 @@ class SudokuBoard extends React.Component {
     }
 
     nextStepIfNoNumbersLeft = () => {
-        let newBoard = this.updatedBoard(this.state.unsolved[this.state.i], 0)
+        let newBoard = this.updatedBoard(this.state.unsolved[this.state.i], undefined)
 
         let newAttempts = this.state.attempts;
         newAttempts[`${this.state.unsolved[this.state.i].row}-${this.state.unsolved[this.state.i].column}`] = [];
         // i--;
-        newBoard = this.updatedBoard(this.state.unsolved[this.state.i -1 ], 0, newBoard);
+        newBoard = this.updatedBoard(this.state.unsolved[this.state.i -1 ], undefined, newBoard);
         // i--;
         if ( (this.state.i - 2) < 0) {
             throw new Error("Unable to solve Sudoku - make sure the board is valid")
@@ -214,7 +213,7 @@ class SudokuBoard extends React.Component {
         let cells = this.state.board.flat();
         return cells.map( (cell, index) => {
             return (
-                <div key={`cell-${index}`}>
+                <div className="cell" key={`cell-${index}`}>
                     {cell}
                 </div>
             );
